@@ -100,7 +100,7 @@ for (let i = 0; i < contacts.length; i += batchSize) {
        * Each open increments the campaign's openCount in MongoDB
        */
       const appUrl = (
-        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.APP_URL ||
         `${req.nextUrl.protocol}//${req.nextUrl.host}`
       ).replace(/\/$/, "");
       const trackingPixel = `<img src="${appUrl}/api/track/open?campaignId=${campaign._id}" width="1" height="1" style="display:none" alt="" />`;
