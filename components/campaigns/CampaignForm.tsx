@@ -70,7 +70,7 @@ export default function CampaignForm({
       onSubmit={handleSubmit}
       className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden max-w-7xl"
     >
-      {/* Form Header */}
+      {/* Form Header initialize */}
       <div className="px-8 pt-8 pb-6 border-b border-slate-100 bg-slate-50/50">
         <h2 className="text-lg font-bold text-slate-900 tracking-tight">
           Campaign Details
