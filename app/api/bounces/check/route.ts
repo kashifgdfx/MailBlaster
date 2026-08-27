@@ -63,7 +63,7 @@ export async function GET() {
           continue;
         }
 
-        const parsed = await simpleParser(msg.source);
+        const parsed = await simpleParser(msg.source!);
 
         const from = parsed.from?.text || "";
         const subject = parsed.subject || "";
@@ -90,13 +90,13 @@ export async function GET() {
 
         console.log("🚨 BOUNCE FOUND");
 
-        const emailMatch = text.match(
+        const emailMatch: RegExpMatchArray | null = text.match(
           /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
         );
 
         const bouncedEmail =
           emailMatch?.find(
-            (email) => email !== process.env.EMAIL_USER
+            (email: string) => email !== process.env.EMAIL_USER
           ) || "unknown";
 
         await Campaign.findByIdAndUpdate(
