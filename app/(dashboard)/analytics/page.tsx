@@ -72,12 +72,12 @@ const performanceMetrics = [
     change: "+15%",
     icon: AlertTriangle,
   },
-  {
-    title: "Bounce Rate",
-    value: `${analytics.bounceRate ?? 0}%`,
-    change: analytics.bounceRate > 5 ? "-2%" : "+0%",
-    icon: AlertTriangle,
-  },
+  // {
+  //   title: "Bounce Rate",
+  //   value: `${analytics.bounceRate ?? 0}%`,
+  //   change: analytics.bounceRate > 5 ? "-2%" : "+0%",
+  //   icon: AlertTriangle,
+  // },
 ];
 
   return (

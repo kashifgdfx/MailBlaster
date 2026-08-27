@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/Button";
+import { toast } from "sonner";
 
 export default function EditContactPage() {
   const { id } = useParams();
@@ -52,11 +53,11 @@ export default function EditContactPage() {
     const data = await res.json();
 
     if (!res.ok) {
-      alert(data.error);
+      toast.error("Operation Failed", { description: data.error || "Failed to update contact" });
       return;
     }
 
-    alert("Contact updated successfully");
+    toast.success("Contact Updated", { description: "Contact updated successfully" });
 
     router.push("/contacts");
   };

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { CheckCircle2, Eye, Edit3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import JodEditor from "@/components/JodEditor"; // Apne path ke hisaab se import check kar lein
+import { toast } from "sonner";
 
 export default function CampaignWizard() {
   const router = useRouter();
@@ -70,12 +71,16 @@ export default function CampaignWizard() {
         throw new Error(sendData.error || "Email sending failed");
       }
 
-      alert(`Campaign Sent Successfully 🚀\nEmails Sent: ${sendData.sentCount}`);
+      toast.success("Campaign Sent", {
+        description: `${sendData.sentCount} emails sent successfully`,
+      });
 
       router.push("/campaigns");
       router.refresh();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      toast.error("Operation Failed", {
+        description: err instanceof Error ? err.message : "Failed to send campaign",
+      });
     } finally {
       setLoading(false);
     }

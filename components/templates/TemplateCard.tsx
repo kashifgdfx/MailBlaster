@@ -2,6 +2,8 @@
 
 import { LayoutTemplate, ArrowRight, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useState } from "react";
 
 interface Template {
   _id: string;
@@ -13,20 +15,19 @@ interface Template {
 
 interface TemplateCardProps {
   template: Template;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => void | Promise<void>;
 }
 
 export default function TemplateCard({ template, onDelete }: TemplateCardProps) {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const previewText = template.content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 100);
   const updatedDate = new Date(template.updatedAt).toLocaleDateString("en-US", {
     month: "short", day: "numeric", year: "numeric",
   });
 
-  const handleDelete = () => {
-    if (confirm("Delete this template?")) onDelete(template._id);
-  };
-
   return (
+    <>
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -47,7 +48,7 @@ export default function TemplateCard({ template, onDelete }: TemplateCardProps) 
         <span>Updated {updatedDate}</span>
         <div className="flex items-center gap-3">
           <button
-            onClick={handleDelete}
+            onClick={() => setIsConfirmOpen(true)}
             className="text-red-500 hover:text-red-700 transition-colors"
             title="Delete template"
           >
@@ -62,5 +63,7 @@ export default function TemplateCard({ template, onDelete }: TemplateCardProps) 
         </div>
       </div>
     </div>
+    <ConfirmDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen} title="Delete template?" description="This template will be permanently deleted and can no longer be used in campaigns." confirmText="Delete template" cancelText="Cancel" destructive loading={isDeleting} onConfirm={async () => { setIsDeleting(true); try { await onDelete(template._id); setIsConfirmOpen(false); } finally { setIsDeleting(false); } }} />
+    </>
   );
 }

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import TemplateCard from "@/components/templates/TemplateCard";
 import Link from "next/link";
 import { Plus, FileText } from "lucide-react";
+import { toast } from "sonner";
 
 interface Template {
   _id: string;
@@ -37,8 +38,9 @@ export default function TemplatesPage() {
     try {
       await fetch(`/api/templates/${id}`, { method: "DELETE" });
       setTemplates((prev) => prev.filter((t) => t._id !== id));
+      toast.success("Template Deleted", { description: "Template permanently deleted" });
     } catch {
-      alert("Failed to delete template.");
+      toast.error("Operation Failed", { description: "Failed to delete template." });
     }
   };
 

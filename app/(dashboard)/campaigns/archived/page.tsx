@@ -1,148 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Archive, ArrowLeft, ArrowUpRight, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/Button";
-import Link from "next/link";
-import { Archive, ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
-type Campaign = {
-  _id: string;
-  title: string;
-  subject: string;
-  senderEmail: string;
-  targetSegment: string;
-  sentCount?: number;
-  createdAt: string;
-  isDeleted?: boolean;
-};
+type Campaign = { _id: string; title: string; subject: string; senderEmail: string; targetSegment: string; sentCount?: number; createdAt: string };
+const message = (error: unknown) => error instanceof Error ? error.message : "Operation failed";
 
 export default function ArchivedCampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-
-  useEffect(() => {
-    const fetchArchivedCampaigns = async () => {
-      try {
-        const response = await fetch("/api/campaigns?archived=true", {
-          cache: "no-store",
-        });
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to fetch archived campaigns");
-        }
-
-        if (Array.isArray(data)) {
-          setCampaigns(data);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchArchivedCampaigns();
-  }, []);
-
-  return (
-    <DashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-8 pb-12">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/60 backdrop-blur-xl border border-slate-100 p-6 rounded-2xl shadow-sm">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-slate-700 text-white rounded-lg shadow-inner">
-                <Archive className="w-5 h-5" />
-              </div>
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-                Archived Campaigns
-              </h1>
-            </div>
-            <p className="text-sm text-slate-500 font-normal">
-              View historical campaigns and their preserved performance data.
-            </p>
-          </div>
-
-          <Link href="/campaigns">
-            <Button variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Active Campaigns
-            </Button>
-          </Link>
-        </div>
-
-        {campaigns.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-100 p-16 text-center shadow-sm space-y-3">
-            <div className="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-2">
-              <Archive className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-medium text-slate-800">No archived campaigns</h3>
-            <p className="text-sm text-slate-500 max-w-sm mx-auto">
-              Archived campaigns will appear here while their analytics remain available.
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {campaigns.map((campaign) => (
-              <div
-                key={campaign._id}
-                className="group bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-300"
-              >
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-semibold text-slate-900">
-                      {campaign.title}
-                    </h3>
-                    <p className="text-sm text-slate-500 font-normal">
-                      {campaign.subject}
-                    </p>
-                  </div>
-
-                  <span className="px-3 py-1 rounded-full text-xs font-medium tracking-wide uppercase bg-slate-100 text-slate-600 border border-slate-200">
-                    Archived
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100">
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Sender</p>
-                    <p className="text-sm font-medium text-slate-700 truncate">{campaign.senderEmail}</p>
-                  </div>
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Segment</p>
-                    <p className="text-sm font-medium text-slate-700">{campaign.targetSegment}</p>
-                  </div>
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Emails Sent</p>
-                    <p className="text-sm font-medium text-slate-700">{campaign.sentCount || 0}</p>
-                  </div>
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Created</p>
-                    <p className="text-sm font-medium text-slate-700">
-                      {new Date(campaign.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex items-center justify-end gap-3 pt-4">
-                  <Link href={`/campaigns/${campaign._id}`}>
-                    <Button variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700">
-                      View
-                      <ArrowUpRight className="w-4 h-4 ml-1.5 text-slate-400" />
-                    </Button>
-                  </Link>
-                  <Button
-                    disabled
-                    variant="outline"
-                    className="border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed"
-                  >
-                    <Archive className="w-4 h-4 mr-2" />
-                    Archived
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </DashboardLayout>
-  );
+  const [deletingId, setDeletingId] = useState("");
+  const [restoreId, setRestoreId] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  useEffect(() => { const load = async () => { try { const response = await fetch("/api/campaigns?archived=true", { cache: "no-store" }); const data: unknown = await response.json(); if (!response.ok) throw new Error("Failed to fetch archived campaigns"); if (Array.isArray(data)) setCampaigns(data as Campaign[]); } catch (error) { toast.error("Operation Failed", { description: message(error) }); } }; void load(); }, []);
+  const restore = async (id: string) => { try { setRestoreId(id); const response = await fetch(`/api/campaigns/${id}/restore`, { method: "PATCH" }); const data = await response.json(); if (!response.ok) throw new Error(data.error || "Failed to restore campaign"); setCampaigns((current) => current.filter((campaign) => campaign._id !== id)); toast.success("Campaign Restored", { description: "Campaign restored successfully" }); } catch (error) { toast.error("Operation Failed", { description: message(error) }); } finally { setRestoreId(""); } };
+  const permanentlyDelete = async () => { if (!deleteId) return; try { setDeletingId(deleteId); const response = await fetch(`/api/campaigns/${deleteId}?permanent=true`, { method: "DELETE" }); const data = await response.json(); if (!response.ok) throw new Error(data.error || "Failed to delete campaign"); setCampaigns((current) => current.filter((campaign) => campaign._id !== deleteId)); toast.success("Campaign Deleted", { description: "Campaign permanently deleted" }); setDeleteId(null); } catch (error) { toast.error("Operation Failed", { description: message(error) }); } finally { setDeletingId(""); } };
+  return <DashboardLayout><div className="max-w-7xl mx-auto space-y-8 pb-12"><div className="flex justify-between gap-4 bg-white/60 border border-slate-100 p-6 rounded-2xl"><div><div className="flex gap-2 items-center"><Archive className="w-5 h-5" /><h1 className="text-2xl font-semibold">Archived Campaigns</h1></div><p className="text-sm text-slate-500">View historical campaigns and their preserved performance data.</p></div><Link href="/campaigns"><Button variant="outline"><ArrowLeft className="w-4 h-4 mr-2" />Active Campaigns</Button></Link></div>{campaigns.length === 0 ? <div className="p-16 text-center bg-white rounded-2xl border"><Archive className="w-6 h-6 mx-auto text-slate-400" /><p className="mt-3 text-slate-500">No archived campaigns</p></div> : <div className="grid gap-4">{campaigns.map((campaign) => <div key={campaign._id} className="bg-white border rounded-2xl p-6 shadow-sm"><div className="flex justify-between"><div><h3 className="font-semibold text-lg">{campaign.title}</h3><p className="text-sm text-slate-500">{campaign.subject}</p></div><span className="px-3 py-1 h-fit rounded-full text-xs bg-slate-100">Archived</span></div><div className="mt-6 flex justify-end gap-3"><Link href={`/campaigns/${campaign._id}`}><Button variant="outline">View <ArrowUpRight className="w-4 h-4 ml-1" /></Button></Link><Button onClick={() => void restore(campaign._id)} disabled={Boolean(restoreId)} className="bg-emerald-600 hover:bg-emerald-700">{restoreId === campaign._id ? "Restoring..." : "Restore"}</Button><Button onClick={() => setDeleteId(campaign._id)} disabled={Boolean(deletingId)} className="bg-red-600 hover:bg-red-700"><Trash2 className="w-4 h-4 mr-2" />Delete Permanently</Button></div></div>)}</div>}<ConfirmDialog open={deleteId !== null} onOpenChange={(open) => { if (!open) setDeleteId(null); }} title="Delete campaign permanently?" description="This will permanently delete the campaign and analytics. This cannot be undone." confirmText="Delete permanently" cancelText="Cancel" destructive loading={Boolean(deletingId)} onConfirm={permanentlyDelete} /></div></DashboardLayout>;
 }

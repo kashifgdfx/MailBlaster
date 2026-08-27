@@ -11,6 +11,7 @@ import {
   FileText,
   CheckCircle2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ImportContactsPage() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function ImportContactsPage() {
 
   const handleUpload = async () => {
     if (!file) {
-      alert("Please select a CSV file first");
+      toast.error("Import Failed", { description: "Please select a CSV file first" });
       return;
     }
 
@@ -45,13 +46,14 @@ export default function ImportContactsPage() {
       setMessage(
         `Successfully imported ${data.imported} contacts`
       );
+      toast.success("Contacts Imported", { description: `Successfully imported ${data.imported} contacts` });
 
       setTimeout(() => {
         router.push("/contacts");
         router.refresh();
       }, 1500);
-    } catch (error: any) {
-      alert(error.message || "Import failed");
+    } catch (error: unknown) {
+      toast.error("Import Failed", { description: error instanceof Error ? error.message : "Import failed" });
     } finally {
       setLoading(false);
     }

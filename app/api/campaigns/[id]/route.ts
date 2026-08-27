@@ -3,18 +3,38 @@ import { connectDB } from "@/lib/mongodb";
 import Campaign from "@/models/Campaign";
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+
     const { id } = await params;
-    const campaign = await Campaign.findById(id).select("isDeleted");
+
+    const { searchParams } = new URL(req.url);
+    const permanent =
+      searchParams.get("permanent") === "true";
+
+    const campaign = await Campaign.findById(id);
 
     if (!campaign) {
-      return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Campaign not found" },
+        { status: 404 }
+      );
     }
 
+    // PERMANENT DELETE
+    if (permanent) {
+      await Campaign.findByIdAndDelete(id);
+
+      return NextResponse.json({
+        success: true,
+        message: "Campaign permanently deleted",
+      });
+    }
+
+    // ARCHIVE
     if (campaign.isDeleted === true) {
       return NextResponse.json(
         { error: "Campaign already archived" },
@@ -22,18 +42,11 @@ export async function DELETE(
       );
     }
 
-    const archived = await Campaign.findByIdAndUpdate(
-      id,
-      { $set: { isDeleted: true } },
-      { new: true }
-    );
-
-    if (!archived || archived.isDeleted !== true) {
-      return NextResponse.json(
-        { error: "Failed to archive campaign" },
-        { status: 500 }
-      );
-    }
+    await Campaign.findByIdAndUpdate(id, {
+      $set: {
+        isDeleted: true,
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -41,6 +54,14 @@ export async function DELETE(
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to delete campaign" }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        error: "Failed to process campaign",
+      },
+      {
+        status: 500,
+      }
+    );
   }
 }

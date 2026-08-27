@@ -72,6 +72,11 @@ const CampaignSchema = new Schema(
       default: 0,
     },
 
+    processedBounceIds: {
+  type: [String],
+  default: [],
+},
+
     failedEmails: [
       {
         email: String,

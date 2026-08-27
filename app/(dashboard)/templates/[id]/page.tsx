@@ -7,6 +7,7 @@ import TemplateEditor from "@/components/templates/TemplateEditor";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Save, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function EditTemplatePage() {
   const router = useRouter();
@@ -31,14 +32,14 @@ export default function EditTemplatePage() {
         const data = await res.json();
         setFormData({ title: data.title, category: data.category, content: data.content });
       } catch {
-        alert("Failed to load template.");
+        toast.error("Operation Failed", { description: "Failed to load template." });
         router.push("/templates");
       } finally {
         setIsFetching(false);
       }
     };
     load();
-  }, [id]);
+  }, [id, router]);
 
   const validate = () => {
     const e: { title?: string; content?: string } = {};
@@ -69,8 +70,8 @@ export default function EditTemplatePage() {
       }
       setSuccessMsg(true);
       setTimeout(() => router.push("/templates"), 1500);
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      toast.error("Operation Failed", { description: err instanceof Error ? err.message : "Failed to update template" });
     } finally {
       setIsLoading(false);
     }

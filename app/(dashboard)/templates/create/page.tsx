@@ -7,6 +7,7 @@ import TemplateEditor from "@/components/templates/TemplateEditor";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CreateTemplatePage() {
   const router = useRouter();
@@ -49,8 +50,8 @@ export default function CreateTemplatePage() {
       }
       setSuccessMsg(true);
       setTimeout(() => router.push("/templates"), 1500);
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      toast.error("Operation Failed", { description: err instanceof Error ? err.message : "Failed to create template" });
     } finally {
       setIsLoading(false);
     }

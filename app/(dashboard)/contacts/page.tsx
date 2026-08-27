@@ -5,12 +5,16 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { UserPlus, Upload, Search, Mail } from "lucide-react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+  const [pendingDelete, setPendingDelete] = useState<{ ids: string[]; label: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchContacts = async () => {
     try {
@@ -28,13 +32,8 @@ export default function ContactsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this contact?"
-    );
-
-    if (!confirmed) return;
-
     try {
+      setDeleting(true);
       const res = await fetch(`/api/contacts/${id}`, {
         method: "DELETE",
       });
@@ -45,11 +44,14 @@ export default function ContactsPage() {
         throw new Error(data.error);
       }
 
-      alert("Contact deleted successfully");
+      toast.success("Contact Deleted", { description: "Contact deleted successfully" });
+      setPendingDelete(null);
 
       fetchContacts();
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error: unknown) {
+      toast.error("Operation Failed", { description: error instanceof Error ? error.message : "Failed to delete contact" });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -78,14 +80,8 @@ export default function ContactsPage() {
 
   const handleBulkDelete = async () => {
     if (!selectedContacts.length) return;
-
-    const confirmed = window.confirm(
-      `Delete ${selectedContacts.length} contacts?`
-    );
-
-    if (!confirmed) return;
-
     try {
+      setDeleting(true);
       const res = await fetch(
         "/api/contacts/bulk-delete",
         {
@@ -106,9 +102,13 @@ export default function ContactsPage() {
       }
 
       setSelectedContacts([]);
+      setPendingDelete(null);
       fetchContacts();
-    } catch (error: any) {
-      alert(error.message);
+      toast.success("Contacts Deleted", { description: "Selected contacts deleted successfully" });
+    } catch (error: unknown) {
+      toast.error("Operation Failed", { description: error instanceof Error ? error.message : "Failed to delete contacts" });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -179,7 +179,7 @@ export default function ContactsPage() {
             </span>
 
             <button
-              onClick={handleBulkDelete}
+              onClick={() => setPendingDelete({ ids: selectedContacts, label: `${selectedContacts.length} contacts` })}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
             >
               Delete Selected
@@ -293,7 +293,7 @@ export default function ContactsPage() {
                         </Link>
 
                         <button
-                          onClick={() => handleDelete(contact._id)}
+                          onClick={() => setPendingDelete({ ids: [contact._id], label: "this contact" })}
                           className="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 px-3 py-1.5 rounded-lg"
                         >
                           Delete
@@ -306,6 +306,22 @@ export default function ContactsPage() {
           </table>
         </div>
       </div>
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => { if (!open) setPendingDelete(null); }}
+        title={`Delete ${pendingDelete?.label ?? "contact"}?`}
+        description="This action permanently removes the selected contact records and cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        destructive
+        loading={deleting}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          return pendingDelete.ids.length === 1
+            ? handleDelete(pendingDelete.ids[0])
+            : handleBulkDelete();
+        }}
+      />
     </DashboardLayout>
   );
 }
