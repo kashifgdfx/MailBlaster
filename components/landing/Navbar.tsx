@@ -48,13 +48,13 @@ export default function Navbar() {
             >
               Sign In
             </Link>
-            <Link 
+            {/* <Link 
               href="/register" 
               className="inline-flex items-center gap-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all transform hover:-translate-y-0.5"
             >
               Get Started
               <ArrowRight className="w-4 h-4" />
-            </Link>
+            </Link> */}
           </div>
 
           {/* Mobile Menu Toggle Button */}

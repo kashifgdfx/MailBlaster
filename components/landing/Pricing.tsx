@@ -136,7 +136,7 @@ export default function Pricing() {
               {/* Action Button */}
               <div className="pt-4 border-t border-gray-800">
                 <Link 
-                  href="/signup" 
+                  href="/#" 
                   className="w-full inline-flex items-center justify-center gap-3 py-4 px-6 text-base font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-2xl shadow-xl shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5"
                 >
                   Claim Your Free Access Now

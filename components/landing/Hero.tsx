@@ -85,13 +85,13 @@ useEffect(() => {
         {/* Buttons */}
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6">
 
-          <Link
-            href="/register"
+          {/* <Link
+            href="/login"
             className="group w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 text-base font-semibold text-white bg-blue-600 rounded-2xl hover:bg-blue-500 shadow-2xl transition-all duration-300"
           >
             Open Dashboard
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          </Link> */}
 
           <button
             onClick={() =>

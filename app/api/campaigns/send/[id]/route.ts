@@ -75,14 +75,20 @@ console.log("From Address:", fromAddress);
     let sentCount = 0;
     let bounceCount = 0;
     const failedEmails: { email: string; reason: string; date: Date }[] = [];
-const batchSize = 10;
+const batchSize = 5;
 
 for (let i = 0; i < contacts.length; i += batchSize) {
   const batch = contacts.slice(i, i + batchSize);
 
-  const results = await Promise.allSettled(
-    batch.map(async (contact) => {
-      console.log(`📨 Sending email to: ${contact.email}`);
+  console.log(
+    `🚀 Sending Batch ${Math.floor(i / batchSize) + 1}`
+  );
+
+  for (const contact of batch) {
+    try {
+      console.log(
+        `📨 Sending email to: ${contact.email}`
+      );
 
       const currentDate = new Date();
 
@@ -90,23 +96,39 @@ for (let i = 0; i < contacts.length; i += batchSize) {
         .replace(/{{name}}/g, contact.name || "Subscriber")
         .replace(/{{company}}/g, companyName);
 
-      const footer = `<hr style="margin-top:30px;border:none;border-top:1px solid #e5e7eb"><p style="font-size:12px;color:#6b7280;text-align:center">This email was sent on ${currentDate.toLocaleString()}</p>`;
+      const footer = `
+        <hr style="margin-top:30px;border:none;border-top:1px solid #e5e7eb">
+        <p style="font-size:12px;color:#6b7280;text-align:center">
+          This email was sent on ${currentDate.toLocaleString()}
+        </p>
+      `;
 
-      const wrappedHtml = `<div style="max-width:700px;margin:0 auto;font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#1f2937;background:#ffffff;padding:20px">${personalizedContent}${footer}</div>`;
+      const wrappedHtml = `
+        <div style="max-width:700px;margin:0 auto;font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#1f2937;background:#ffffff;padding:20px">
+          ${personalizedContent}
+          ${footer}
+        </div>
+      `;
 
-      /**
-       * Inject tracking pixel for open rate monitoring
-       * The pixel is 1x1 and invisible to users
-       * Each open increments the campaign's openCount in MongoDB
-       */
       const appUrl = (
         process.env.APP_URL ||
         `${req.nextUrl.protocol}//${req.nextUrl.host}`
       ).replace(/\/$/, "");
-      const trackingPixel = `<img src="${appUrl}/api/track/open?campaignId=${campaign._id}" width="1" height="1" style="display:none" alt="" />`;
-      const htmlWithTracking = wrappedHtml + trackingPixel;
 
-      return transporter.sendMail({
+      const trackingPixel = `
+        <img
+          src="${appUrl}/api/track/open?campaignId=${campaign._id}"
+          width="1"
+          height="1"
+          style="display:none"
+          alt=""
+        />
+      `;
+
+      const htmlWithTracking =
+        wrappedHtml + trackingPixel;
+
+      await transporter.sendMail({
         from: fromAddress,
         to: contact.email,
         subject: campaign.subject,
@@ -117,29 +139,55 @@ for (let i = 0; i < contacts.length; i += batchSize) {
           "X-Priority": "3",
         },
       });
-    })
-  );
 
-  results.forEach((result, index) => {
-    if (result.status === "fulfilled") {
       sentCount++;
-    } else {
+
+      // Random delay between emails (2-7 sec)
+      const emailDelay =
+        Math.floor(Math.random() * 5000) + 2000;
+
+      console.log(
+        `⏳ Waiting ${Math.round(
+          emailDelay / 1000
+        )}s before next email`
+      );
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, emailDelay)
+      );
+    } catch (error: any) {
       console.error(
-        `❌ FAILED: ${batch[index].email}`,
-        result.reason
+        `❌ FAILED: ${contact.email}`,
+        error
       );
 
       bounceCount++;
 
       failedEmails.push({
-        email: batch[index].email,
-        reason: result.reason?.message || "Unknown error",
+        email: contact.email,
+        reason:
+          error?.message || "Unknown error",
         date: new Date(),
       });
     }
-  });
-}
+  }
 
+  // Random delay between batches (15-45 sec)
+  if (i + batchSize < contacts.length) {
+    const batchDelay =
+      Math.floor(Math.random() * 30000) + 15000;
+
+    console.log(
+      `⏳ Batch complete. Waiting ${Math.round(
+        batchDelay / 1000
+      )}s before next batch`
+    );
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, batchDelay)
+    );
+  }
+}
     await Campaign.findByIdAndUpdate(
       id,
       {

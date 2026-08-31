@@ -25,7 +25,7 @@ export default function DashboardPreview() {
               Everything built for high deliverability and scale. Control your sequences with live data feeds and automated lead filtering.
             </p>
             <Link 
-              href="/signup" 
+              href="/#" 
               className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5"
             >
               Start Free
