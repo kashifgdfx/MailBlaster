@@ -13,15 +13,38 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     setError("");
     setIsLoading(true);
 
     try {
-      // Industry standard: Trigger password reset token email API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const res = await fetch(
+        "/api/auth/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          data.error || "Failed to send reset email"
+        );
+      }
+
       setSubmitted(true);
-    } catch (err) {
-      setError("Failed to send reset instructions. Please try again.");
+    } catch (err: any) {
+      setError(
+        err.message ||
+        "Failed to send reset instructions."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -58,9 +81,11 @@ export default function ForgotPasswordPage() {
                 <CheckCircle className="w-6 h-6" />
               </div>
               <h3 className="text-base font-semibold text-slate-900">Check your inbox</h3>
-              <p className="text-xs text-slate-500">
-                We have sent password recovery instructions to <strong className="text-slate-700">{email}</strong>.
-              </p>
+              We have sent a password reset link to
+              <strong className="text-slate-700">
+                {email}
+              </strong>.
+              Please check your inbox and spam folder.
               <div className="pt-2">
                 <Link href="/login">
                   <Button variant="outline" className="w-full text-xs">

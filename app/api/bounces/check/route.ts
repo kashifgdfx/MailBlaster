@@ -71,6 +71,11 @@ export async function GET() {
 
         console.log("FROM:", from);
         console.log("SUBJECT:", subject);
+        console.log("================================");
+console.log("FROM:", from);
+console.log("SUBJECT:", subject);
+console.log("TEXT:", text.substring(0, 2000));
+console.log("================================");
 
         const isBounce =
           from.includes("MAILER-DAEMON") ||
@@ -81,6 +86,10 @@ export async function GET() {
           text.includes("could not be delivered") ||
           text.includes("delivery failed") ||
           text.includes("recipient address rejected");
+        text.includes("550 5.1.1") ||
+          text.includes("does not exist") ||
+          text.includes("NoSuchUser") ||
+          text.includes("Undelivered Mail Returned to Sender")
 
         if (!isBounce) {
           continue;
@@ -90,9 +99,9 @@ export async function GET() {
 
         console.log("🚨 BOUNCE FOUND");
 
-        const emailMatch: RegExpMatchArray | null = text.match(
-          /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
-        );
+      const emailMatch = text.match(
+  /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
+);
 
         const bouncedEmail =
           emailMatch?.find(
