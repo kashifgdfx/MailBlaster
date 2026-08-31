@@ -89,7 +89,7 @@ export default function FAQ() {
             Can't find the answer you're looking for? Reach out to our founder support team directly.
           </p>
           <a 
-            href="mailto:support@blastermail.io" 
+            href="mailto:admin@websynergystudiollc.online" 
             className="mt-6 inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20 transition-all"
           >
             Chat With Support
