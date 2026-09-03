@@ -1,9 +1,8 @@
 {
-  "framework": "nextjs",
   "crons": [
     {
       "path": "/api/jobs/process-campaigns",
-      "schedule": "*/1 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
