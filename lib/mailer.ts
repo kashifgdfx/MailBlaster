@@ -1,16 +1,14 @@
 import nodemailer from "nodemailer";
+
 export const transporter = nodemailer.createTransport({
-
-  host: "smtp.hostinger.com",
+  host: "smtp.gmail.com",
   port: 465,
-  secure: true,
-
+  secure: true, // SSL
   pool: true,
   maxConnections: 5,
   maxMessages: 100,
-
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.EMAIL_USER, // Gmail address
+    pass: process.env.EMAIL_PASS, // Gmail App Password
   },
 });

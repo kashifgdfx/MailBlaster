@@ -59,7 +59,13 @@ export default async function CampaignDetailPage({
             className={`px-3.5 py-1.5 rounded-full text-xs font-medium tracking-wide uppercase flex items-center gap-1.5 ${
               campaign.status === "sent"
                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50"
-                : "bg-amber-50 text-amber-700 border border-amber-200/50"
+                : campaign.status === "sending"
+                  ? "bg-blue-50 text-blue-700 border border-blue-200/50"
+                  : campaign.status === "queued"
+                    ? "bg-amber-50 text-amber-700 border border-amber-200/50"
+                    : campaign.status === "failed"
+                      ? "bg-rose-50 text-rose-700 border border-rose-200/50"
+                      : "bg-slate-50 text-slate-700 border border-slate-200/50"
             }`}
           >
             {campaign.status === "sent" ? (
@@ -86,6 +92,25 @@ export default async function CampaignDetailPage({
             </p>
           </div>
 
+          <div className="pt-6 border-t border-slate-100 space-y-4">
+            <div className="flex items-center justify-between text-xs font-medium text-slate-500 uppercase tracking-wider">
+              <span>Campaign Progress</span>
+              <span>
+                {campaign.totalRecipients > 0
+                  ? `${Math.round(((campaign.sentCount || 0) / campaign.totalRecipients) * 100)}%`
+                  : "0%"}
+              </span>
+            </div>
+            <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-500 transition-all"
+                style={{
+                  width: `${campaign.totalRecipients > 0 ? Math.min(((campaign.sentCount || 0) / campaign.totalRecipients) * 100, 100) : 0}%`,
+                }}
+              />
+            </div>
+          </div>
+
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-2 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
             <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-4 space-y-1">
@@ -104,7 +129,7 @@ export default async function CampaignDetailPage({
                 Total Emails Sent
               </div>
               <p className="text-sm font-semibold text-slate-800">
-                {campaign.sentCount || 0}
+                {campaign.sentCount || 0} / {campaign.totalRecipients || 0}
               </p>
             </div>
           </div>

@@ -11,6 +11,7 @@
   "dependencies": {
     "@richscripts/richtexteditor": "^2.5.0",
     "@syncfusion/ej2-react-richtexteditor": "^34.2.4",
+    "@upstash/redis": "^1.38.3",
     "bcryptjs": "^3.0.3",
     "bullmq": "^6.1.2",
     "cookie": "^2.0.1",

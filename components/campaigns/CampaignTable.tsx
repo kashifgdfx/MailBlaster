@@ -104,17 +104,34 @@ export default function CampaignTable({ campaigns, onView, onAction, onDelete }:
                   </td>
                   
                   <td className="py-4 px-6">
-                    <div className="flex items-baseline gap-1.5 font-medium text-slate-900">
-                      <span>{campaign.sentCount.toLocaleString()}</span>
-                      <span className="text-xs text-slate-400 font-normal">/ {campaign.recipientsCount.toLocaleString()}</span>
-                    </div>
+                 <div className="flex items-center gap-2">
+  <span className="font-semibold text-slate-900">
+    {campaign.sentCount.toLocaleString()}
+  </span>
+
+  <span className="text-xs text-slate-400">
+    / {campaign.recipientsCount.toLocaleString()}
+  </span>
+
+  {campaign.status === "Sending" && (
+    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 animate-pulse">
+      Processing...
+    </span>
+  )}
+</div>
                     {/* Optional miniature progress bar */}
-                    <div className="w-24 h-1.5 bg-slate-100 rounded-full mt-1.5 overflow-hidden">
-                      <div 
-                        className="h-full bg-indigo-500 rounded-full transition-all duration-500" 
-                        style={{ width: `${progressPercentage}%` }}
-                      ></div>
-                    </div>
+                   <div className="flex items-center gap-2 mt-1.5">
+  <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+    <div
+      className="h-full bg-indigo-500 rounded-full transition-all duration-[2500ms] ease-out"
+      style={{ width: `${progressPercentage}%` }}
+    />
+  </div>
+
+  <span className="text-[10px] font-semibold text-slate-500 min-w-[32px]">
+    {progressPercentage}%
+  </span>
+</div>
                   </td>
                   
                   <td className="py-4 px-6">

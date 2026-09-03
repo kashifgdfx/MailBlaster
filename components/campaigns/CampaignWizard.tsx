@@ -71,8 +71,8 @@ export default function CampaignWizard() {
         throw new Error(sendData.error || "Email sending failed");
       }
 
-      toast.success("Campaign Sent", {
-        description: `${sendData.sentCount} emails sent successfully`,
+      toast.success("Campaign Queued Successfully", {
+        description: sendData.message || "Your campaign is now processing in the background.",
       });
 
       router.push("/campaigns");

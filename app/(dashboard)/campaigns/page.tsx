@@ -16,9 +16,10 @@ type Campaign = {
   senderEmail: string;
   targetSegment: string;
   sentCount?: number;
+  totalRecipients?: number;
   createdAt: string;
   isDeleted?: boolean;
-  status: string
+  status: string;
 };
 
 type PendingAction = {
@@ -36,19 +37,44 @@ export default function CampaignsPage() {
   const [deletingId, setDeletingId] = useState("");
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
 
-  const fetchCampaigns = async () => {
-    try {
-      const response = await fetch("/api/campaigns", { cache: "no-store" });
-      const data: unknown = await response.json();
-      if (Array.isArray(data)) setCampaigns(data as Campaign[]);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  // const fetchCampaigns = async () => {
+  //   try {
+  //     const response = await fetch("/api/campaigns", { cache: "no-store" });
+  //     const data: unknown = await response.json();
+  //     if (Array.isArray(data)) setCampaigns(data as Campaign[]);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
-  useEffect(() => {
+  const fetchCampaigns = async () => {
+  const response = await fetch("/api/campaigns", {
+    cache: "no-store",
+  });
+
+  const data = await response.json();
+
+  console.log(
+    data.map((c: any) => ({
+      title: c.title,
+      sent: c.sentCount,
+      total: c.totalRecipients,
+      status: c.status,
+    }))
+  );
+
+  setCampaigns(data);
+};
+
+useEffect(() => {
+  void fetchCampaigns();
+
+  const interval = setInterval(() => {
     void fetchCampaigns();
-  }, []);
+  }, 1000); // 2 sec
+
+  return () => clearInterval(interval);
+}, []);
 
   const archiveCampaign = async (id: string) => {
     try {
@@ -90,7 +116,7 @@ export default function CampaignsPage() {
       const response = await fetch(`/api/campaigns/send/${id}`, { method: "POST" });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to send campaign");
-      toast.success("Campaign Sent", { description: `${data.sentCount} emails sent successfully` });
+      toast.success("Campaign Queued Successfully", { description: data.message || "Your campaign is now processing in the background." });
       setPendingAction(null);
       await fetchCampaigns();
     } catch (error) {
@@ -145,85 +171,116 @@ export default function CampaignsPage() {
           </div>
         ) : (
           <div className="grid gap-4">
-            {campaigns.map((campaign) => (
-              <div key={campaign._id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
-                <div className="flex justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900">{campaign.title}</h3>
-                    <p className="text-sm text-slate-500">{campaign.subject}</p>
-                  </div>
-                  <span
-                    className={`inline-flex items-center justify-center
-  px-3 py-1.5 rounded-full text-xs font-semibold uppercase
-  min-w-[60px]
-  ${campaign.status === "sent"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : campaign.status === "sending"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-slate-100 text-slate-600"
-                      }`}
-                  >
-                    {campaign.isDeleted ? "Archived" : campaign.status}
-                  </span>
-                </div>
+            {campaigns.map((campaign) => {
+              const totalRecipients = Number(campaign.totalRecipients || 0);
+              const sentCount = Number(campaign.sentCount || 0);
+              const progressPercentage = totalRecipients > 0 ? Math.min((sentCount / totalRecipients) * 100, 100) : 0;
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100">
-                  {[
-                    ["Sender", campaign.senderEmail],
-                    ["Segment", campaign.targetSegment],
-                    ["Emails Sent", campaign.sentCount || 0],
-                    ["Created", new Date(campaign.createdAt).toLocaleDateString()]
-                  ].map(([label, value]) => (
-                    <div key={String(label)}>
-                      <p className="text-xs font-medium text-slate-400 uppercase">{label}</p>
-                      <p className="text-sm font-medium text-slate-700 truncate">{value}</p>
+              return (
+                <div key={campaign._id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+                  <div className="flex justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-900">{campaign.title}</h3>
+                      <p className="text-sm text-slate-500">{campaign.subject}</p>
                     </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 flex flex-wrap justify-end gap-3 pt-4">
-                  <Link href={`/campaigns/${campaign._id}`}>
-                    <Button variant="outline">
-                      View <ArrowUpRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </Link>
-
-                  <Button
-                    onClick={() => setPendingAction({ id: campaign._id, kind: "archive" })}
-                    disabled={Boolean(deletingId)}
-                    variant="outline"
-                    className="border-rose-200 text-rose-600"
-                  >
-                    <Archive className="w-4 h-4 mr-2" />
-                    Archive
-                  </Button>
-
-                  <Button
-                    onClick={() => setPendingAction({ id: campaign._id, kind: "delete" })}
-                    disabled={Boolean(deletingId)}
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </Button>
-
-                  {campaign.status !== "sent" ? (
-                    <Button
-                      onClick={() => setPendingAction({ id: campaign._id, kind: "send" })}
-                      disabled={Boolean(sendingId)}
+                    <span
+                      className={`inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-semibold uppercase min-w-[80px] ${
+                        campaign.status === "sent"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : campaign.status === "sending"
+                            ? "bg-blue-100 text-blue-700"
+                            : campaign.status === "queued"
+                              ? "bg-amber-100 text-amber-700"
+                              : campaign.status === "failed"
+                                ? "bg-rose-100 text-rose-700"
+                                : "bg-slate-100 text-slate-600"
+                      }`}
                     >
-                      <Send className="w-4 h-4 mr-2" />
-                      {sendingId === campaign._id ? "Sending..." : "Send Campaign"}
+                      {campaign.isDeleted ? "Archived" : campaign.status}
+                    </span>
+                  </div>
+
+                  <div className="mt-6 space-y-3 pt-6 border-t border-slate-100">
+                    <div className="flex items-center justify-between text-xs font-medium text-slate-500 uppercase tracking-wide">
+                      <span>Progress</span>
+                      <span>{Math.round(progressPercentage)}%</span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-500 transition-all"
+                        style={{ width: `${progressPercentage}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                    {[
+                      ["Sender", campaign.senderEmail],
+                      ["Segment", campaign.targetSegment],
+                      ["Emails Sent", `${sentCount} / ${totalRecipients || 0}`],
+                      ["Created", new Date(campaign.createdAt).toLocaleDateString()],
+                    ].map(([label, value]) => (
+                      <div key={String(label)}>
+                        <p className="text-xs font-medium text-slate-400 uppercase">{label}</p>
+                        <p className="text-sm font-medium text-slate-700 truncate">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 flex flex-wrap justify-end gap-3 pt-4">
+                    <Link href={`/campaigns/${campaign._id}`}>
+                      <Button variant="outline">
+                        View <ArrowUpRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </Link>
+
+                    <Button
+                      onClick={() => setPendingAction({ id: campaign._id, kind: "archive" })}
+                      disabled={Boolean(deletingId)}
+                      variant="outline"
+                      className="border-rose-200 text-rose-600"
+                    >
+                      <Archive className="w-4 h-4 mr-2" />
+                      Archive
                     </Button>
-                  ) : (
-                    <Button disabled>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Sent
+
+                    <Button
+                      onClick={() => setPendingAction({ id: campaign._id, kind: "delete" })}
+                      disabled={Boolean(deletingId)}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
                     </Button>
-                  )}
+
+                    {campaign.status === "sent" ? (
+                      <Button disabled>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Sent
+                      </Button>
+                    ) : campaign.status === "queued" ? (
+                      <Button disabled className="opacity-80">
+                        <Send className="w-4 h-4 mr-2" />
+                        Queued
+                      </Button>
+                    ) : campaign.status === "sending" ? (
+                      <Button disabled className="opacity-80">
+                        <Send className="w-4 h-4 mr-2" />
+                        Sending...
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => setPendingAction({ id: campaign._id, kind: "send" })}
+                        disabled={Boolean(sendingId)}
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        {sendingId === campaign._id ? "Queued..." : "Send Campaign"}
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

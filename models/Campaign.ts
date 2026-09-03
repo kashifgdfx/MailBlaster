@@ -1,6 +1,6 @@
 // models/Campaign.ts
 
-import { Schema, models, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 
 const CampaignSchema = new Schema(
   {
@@ -36,7 +36,7 @@ const CampaignSchema = new Schema(
 
     status: {
       type: String,
-      enum: ["draft", "sending", "sent"],
+      enum: ["draft", "queued", "sending", "sent", "failed"],
       default: "draft",
     },
 
@@ -50,32 +50,30 @@ const CampaignSchema = new Schema(
       default: 0,
     },
 
+    bounceCount: {
+      type: Number,
+      default: 0,
+    },
+
     openCount: {
       type: Number,
       default: 0,
     },
 
-    
+    lastProcessed: {
+      type: Number,
+      default: 0,
+    },
 
-    isDeleted: {
-      type: Boolean,
-      default: false,
+    queuedAt: {
+      type: Date,
+      default: null,
     },
 
     sentAt: {
       type: Date,
       default: null,
     },
-
-    bounceCount: {
-      type: Number,
-      default: 0,
-    },
-
-    processedBounceIds: {
-  type: [String],
-  default: [],
-},
 
     failedEmails: [
       {
@@ -84,13 +82,27 @@ const CampaignSchema = new Schema(
         date: Date,
       },
     ],
+
+    processedBounceIds: {
+      type: [String],
+      default: [],
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const CampaignModel = models.Campaign || model("Campaign", CampaignSchema);
+if (mongoose.models.Campaign) {
+  delete mongoose.models.Campaign;
+}
+
+const CampaignModel = model("Campaign", CampaignSchema);
 
 if (!CampaignModel.schema.path("isDeleted")) {
   CampaignModel.schema.add({
