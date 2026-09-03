@@ -41,7 +41,6 @@ export async function GET(req: NextRequest) {
       { new: false }
     );
 
-    console.log(`📧 Email opened for campaign: ${campaignId}`);
   } catch (error) {
     console.error("❌ Tracking Error:", error);
   }

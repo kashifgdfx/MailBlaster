@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
 import { enqueueCampaign } from "@/lib/queue";
+import { processCampaignQueue } from "@/app/api/jobs/process-campaigns/route";
 import Campaign from "@/models/Campaign";
 import Contact from "@/models/Contact";
 
@@ -64,13 +65,13 @@ export async function POST(
 
     await enqueueCampaign(campaign._id.toString());
 
-
-fetch(
-  `${process.env.NEXT_PUBLIC_APP_URL}/api/jobs/process-campaigns`,
-  {
-    method: "POST",
-  }
-).catch(console.error);
+    after(async () => {
+      try {
+        await processCampaignQueue();
+      } catch (error) {
+        console.error("Campaign processor trigger failed:", error);
+      }
+    });
 
     return NextResponse.json({
       success: true,

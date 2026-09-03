@@ -5,8 +5,6 @@ import { connectDB } from "@/lib/mongodb";
 import Campaign from "@/models/Campaign";
 
 export async function GET() {
-  console.log("🚀 BOUNCE CHECK STARTED");
-
   await connectDB();
 
   const client = new ImapFlow({
@@ -21,11 +19,8 @@ export async function GET() {
 
   try {
     await client.connect();
-    console.log("✅ IMAP CONNECTED");
 
     const mailbox = await client.mailboxOpen("INBOX");
-
-    console.log(`📬 TOTAL EMAILS: ${mailbox.exists}`);
 
     let bounceFound = 0;
 
@@ -69,14 +64,6 @@ export async function GET() {
         const subject = parsed.subject || "";
         const text = parsed.text || "";
 
-        console.log("FROM:", from);
-        console.log("SUBJECT:", subject);
-        console.log("================================");
-console.log("FROM:", from);
-console.log("SUBJECT:", subject);
-console.log("TEXT:", text.substring(0, 2000));
-console.log("================================");
-
         const isBounce =
           from.includes("MAILER-DAEMON") ||
           from.includes("Mail Delivery System") ||
@@ -85,19 +72,17 @@ console.log("================================");
           subject.includes("Returned mail") ||
           text.includes("could not be delivered") ||
           text.includes("delivery failed") ||
-          text.includes("recipient address rejected");
-        text.includes("550 5.1.1") ||
+          text.includes("recipient address rejected") ||
+          text.includes("550 5.1.1") ||
           text.includes("does not exist") ||
           text.includes("NoSuchUser") ||
-          text.includes("Undelivered Mail Returned to Sender")
+          text.includes("Undelivered Mail Returned to Sender");
 
         if (!isBounce) {
           continue;
         }
 
         bounceFound++;
-
-        console.log("🚨 BOUNCE FOUND");
 
       const emailMatch = text.match(
   /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
@@ -131,9 +116,6 @@ console.log("================================");
           ["\\Seen"]
         );
 
-        console.log(
-          `❌ Bounce Added: ${bouncedEmail}`
-        );
       } catch (err) {
         console.error(
           "Message Parse Error:",

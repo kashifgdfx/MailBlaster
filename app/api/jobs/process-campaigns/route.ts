@@ -1,12 +1,14 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
-import { dequeueCampaign } from "@/lib/queue";
+import { dequeueCampaign, enqueueCampaign } from "@/lib/queue";
 import { sendCampaignChunk } from "@/lib/sendCampaignChunk";
 import { connectDB } from "@/lib/mongodb";
 import Campaign from "@/models/Campaign";
 import Contact from "@/models/Contact";
 
 const CHUNK_SIZE = 25;
+
+export const maxDuration = 300;
 
 export async function GET() {
   return processCampaignQueue();
@@ -16,7 +18,7 @@ export async function POST() {
   return processCampaignQueue();
 }
 
-async function processCampaignQueue() {
+export async function processCampaignQueue() {
   try {
     await connectDB();
 
@@ -124,16 +126,17 @@ async function processCampaignQueue() {
       },
     });
 
-   if (hasMoreContacts && !allFailed) {
-  await enqueueCampaign(campaign._id.toString());
+    if (hasMoreContacts && !allFailed) {
+      await enqueueCampaign(campaign._id.toString());
 
-  fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL}/api/jobs/process-campaigns`,
-    {
-      method: "POST",
+      after(async () => {
+        try {
+          await processCampaignQueue();
+        } catch (error) {
+          console.error("Campaign processor trigger failed:", error);
+        }
+      });
     }
-  ).catch(console.error);
-}
 
     return NextResponse.json({
       success: true,
@@ -157,9 +160,4 @@ async function processCampaignQueue() {
       { status: 500 }
     );
   }
-}
-
-async function enqueueCampaign(campaignId: string) {
-  const { enqueueCampaign: addToQueue } = await import("@/lib/queue");
-  await addToQueue(campaignId);
 }

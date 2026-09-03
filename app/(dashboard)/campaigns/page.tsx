@@ -30,6 +30,19 @@ type PendingAction = {
 const message = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;
 
+const loadCampaigns = async (): Promise<Campaign[]> => {
+  const response = await fetch("/api/campaigns", {
+    cache: "no-store",
+  });
+  const data: unknown = await response.json();
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch campaigns");
+  }
+
+  return Array.isArray(data) ? (data as Campaign[]) : [];
+};
+
 export default function CampaignsPage() {
   const router = useRouter();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -37,44 +50,37 @@ export default function CampaignsPage() {
   const [deletingId, setDeletingId] = useState("");
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
 
-  // const fetchCampaigns = async () => {
-  //   try {
-  //     const response = await fetch("/api/campaigns", { cache: "no-store" });
-  //     const data: unknown = await response.json();
-  //     if (Array.isArray(data)) setCampaigns(data as Campaign[]);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
   const fetchCampaigns = async () => {
-  const response = await fetch("/api/campaigns", {
-    cache: "no-store",
-  });
+    try {
+      setCampaigns(await loadCampaigns());
+    } catch (error) {
+      toast.error("Operation Failed", {
+        description: message(error, "Failed to load campaigns"),
+      });
+    }
+  };
 
-  const data = await response.json();
+  useEffect(() => {
+    let cancelled = false;
 
-  console.log(
-    data.map((c: any) => ({
-      title: c.title,
-      sent: c.sentCount,
-      total: c.totalRecipients,
-      status: c.status,
-    }))
-  );
+    loadCampaigns()
+      .then((data) => {
+        if (!cancelled) {
+          setCampaigns(data);
+        }
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          toast.error("Operation Failed", {
+            description: message(error, "Failed to load campaigns"),
+          });
+        }
+      });
 
-  setCampaigns(data);
-};
-
-useEffect(() => {
-  void fetchCampaigns();
-
-  const interval = setInterval(() => {
-    void fetchCampaigns();
-  }, 1000); // 2 sec
-
-  return () => clearInterval(interval);
-}, []);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const archiveCampaign = async (id: string) => {
     try {

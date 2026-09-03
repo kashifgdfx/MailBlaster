@@ -54,15 +54,6 @@ export async function POST(
       );
     }
 
-    console.log(
-      "EXPIRE:",
-      user.resetPasswordExpire
-    );
-    console.log(
-      "NOW:",
-      new Date()
-    );
-
     if (
       !user.resetPasswordExpire ||
       user.resetPasswordExpire < new Date()

@@ -44,8 +44,6 @@ export async function POST(req: NextRequest) {
     let skipped = 0;
 
     if (validContacts.length > 0) {
-      console.log("Contacts Found:", validContacts);
-
       const existingContacts = await Contact.find(
         {
           email: {
