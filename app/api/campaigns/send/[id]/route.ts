@@ -64,6 +64,14 @@ export async function POST(
 
     await enqueueCampaign(campaign._id.toString());
 
+
+fetch(
+  `${process.env.NEXT_PUBLIC_APP_URL}/api/jobs/process-campaigns`,
+  {
+    method: "POST",
+  }
+).catch(console.error);
+
     return NextResponse.json({
       success: true,
       campaignId: campaign._id,
